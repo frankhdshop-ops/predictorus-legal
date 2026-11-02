@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Invitación a un torneo · Predictorus</title>
+  <style>
+    :root { --fondo:#0b1426; --tarjeta:#14203a; --borde:#243556; --texto:#eef2fb; --suave:#9fb0cf; --acento:#f5b53d; --sobre-acento:#1a1204; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+           background:var(--fondo); color:var(--texto); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    main { width:100%; max-width:380px; text-align:center; background:var(--tarjeta); border:1px solid var(--borde);
+           border-radius:18px; padding:28px 22px; }
+    h1 { font-size:22px; margin:0 0 8px; }
+    p { color:var(--suave); font-size:14px; line-height:1.5; margin:0 0 18px; }
+    a.boton { display:block; padding:13px 16px; border-radius:14px; font-weight:700; font-size:15px; text-decoration:none; margin-top:10px; }
+    a.principal { background:var(--acento); color:var(--sobre-acento); }
+    a.secundario { border:1px solid var(--acento); color:var(--acento); }
+    .error { color:#ff8a8a; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Te invitaron a un torneo</h1>
+    <p id="mensaje">Abriendo Predictorus…</p>
+    <a id="abrir" class="boton principal" href="#" hidden>Abrir en Predictorus</a>
+    <a id="descargar" class="boton secundario" href="#" hidden>Descargar la app</a>
+  </main>
+  <script>
+    (function () {
+      // Dónde se descarga la app si no está instalada (cámbialo si la distribuyes de otra forma,
+      // por ejemplo con el enlace a tu página de Releases en GitHub)
+      var URL_DESCARGA = 'https://play.google.com/store/apps/details?id=com.predictorus.app';
+
+      var params = new URLSearchParams(location.search);
+      var torneo = params.get('t') || '';
+      var codigo = params.get('k') || '';
+      var mensaje = document.getElementById('mensaje');
+      var abrir = document.getElementById('abrir');
+      var descargar = document.getElementById('descargar');
+
+      // Solo letras y números: es lo que genera la app
+      if (!/^[A-Za-z0-9]{10,40}$/.test(torneo) || !/^[A-Za-z0-9]{16,64}$/.test(codigo)) {
+        mensaje.textContent = 'Este enlace de invitación no es válido. Pídele al creador del torneo uno nuevo.';
+        mensaje.className = 'error';
+        return;
+      }
+
+      var datos = 'invitar?t=' + torneo + '&k=' + codigo;
+      var tienda = URL_DESCARGA;
+      descargar.href = tienda;
+      var esAndroid = /android/i.test(navigator.userAgent);
+
+      // Android: el intent abre la app y, si no está instalada, lleva a la tienda
+      var destino = esAndroid
+        ? 'intent://' + datos + '#Intent;scheme=predictorus;package=com.predictorus.app;S.browser_fallback_url=' +
+          encodeURIComponent(tienda) + ';end'
+        : 'predictorus://' + datos;
+
+      abrir.href = destino;
+      abrir.hidden = false;
+      descargar.hidden = false;
+      mensaje.textContent = esAndroid
+        ? 'Si no se abre sola, toca el botón. Necesitas la app de Predictorus con tu sesión iniciada.'
+        : 'Esta invitación se abre desde la app de Predictorus en Android.';
+
+      if (esAndroid) location.href = destino;
+    })();
+  </script>
+</body>
+</html>
